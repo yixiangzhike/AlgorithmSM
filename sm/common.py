@@ -4,6 +4,16 @@ Created on 2016-4-6
 
 @author: 014731
 '''
+
+''' 
+填充规则 
+''' 
+SM4_PAD_PBOC = 0x04 
+PAD_PBOC = '80000000000000000000000000000000' 
+
+SM4_PAD_UNION = 0x08 
+PAD_UNION = '00000000000000000000000000000000' 
+
 try:
     integer_types = (int, long)
 except NameError:
@@ -58,9 +68,45 @@ def Xor(data1, data2):
            异或运算
     '''
     if is_integer(data1) == False or is_integer(data2) == False:
-        raise Exception('源数据不是整数类型，不能进行移位操作')
+        raise Exception('源数据不是整数类型，不能进行异或运算')
     return data1 ^ data2
+
+def message_padding(message, rule = 4): 
+    if len(message) % 2 != 0: 
+        raise Exception('待加密数据长度不正确,必须为2的整倍数')
+    padmsg = '' 
+    if rule == SM4_PAD_PBOC: 
+        ''' 
+        PBOC规范要求填充80 
+        ''' 
+        if len(message) % 32 == 0: 
+            padmsg = message + PAD_PBOC 
+        else: 
+            padmsg = message + PAD_PBOC[0:(len(message) / 32 + 1) * 32 - len(message)] 
+    elif rule == SM4_PAD_UNION: 
+        ''' 
+        UNION规范要求填充00 
+        ''' 
+        if len(message) % 32 == 0: 
+            padmsg = message 
+        else: 
+            padmsg = message + PAD_UNION[0:(len(message) / 32 + 1) * 32 - len(message)] 
+    else: 
+        raise Exception('未知填充规则') 
+     
+    return padmsg 
+
+def gcd(a, b):
+    '''
+    求a,b最大公约数
+    '''
+    while b != 0:
+        c = a%b
+        a = b
+        b = c
+    return a
 #-------------------------------------------------------------
 if __name__ == '__main__':
     print lrotate(0x00000001, 2)
     print Xor(0xF0, 0x0F)
+    print gcd(0xFF00AB,0xAABB00)
